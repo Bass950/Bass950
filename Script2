@@ -1,4 +1,4 @@
-
+#!/bin/bash
 
 SOURCE_DIR="/Dian"
 DEST_SERVER="sftp.esicorp.com"
