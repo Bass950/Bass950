@@ -1,0 +1,30 @@
+#!/bin/bash
+
+SOURCE_DIR="/Dian"
+DEST_SERVER="sftp.esicorp.com"
+DEST_DIR="/uploads"
+PRIVATE_KEY="/path/to/private.key"
+PUBLIC_KEY="/path/to/public.key"
+
+process_file() {
+    local file=$1
+    local filename=$(basename "$file")
+
+    base64 "$file" > "${file}.b64"
+
+    sha256sum "${file}.b64" > "${file}.b64.hash"
+
+    openssl rsautl -encrypt -inkey "$PUBLIC_KEY" -pubin -in "${file}.b64" -out "${file}.enc"
+
+    sftp "$DEST_SERVER" << EOF
+    put "${file}.enc" "$DEST_DIR/$filename.enc"
+    put "${file}.b64.hash" "$DEST_DIR/$filename.b64.hash"
+EOF
+}
+
+
+find "$SOURCE_DIR" -type f -name "*.txt" | while read -r file; do
+    process_file "$file"
+done
+
+echo "Archivos procesados y enviados exitosamente."
